@@ -10,12 +10,7 @@ password = os.getenv("PASSWORD")
 subscriberId = os.getenv("SUBSCRIBERID")
 
 def main():
-    print("===========================================================")
-    print("SLT VAS Custom Program")
-    authToken = getAccessToken()
-    printUsageSummary(getUsageSummaryJson(authToken))
-
-
+    menu()
 
 def getAccessToken():
     '''Sends a Post Request to Omni API using Credentials, and captures Access Token'''
@@ -80,7 +75,8 @@ def printUsageSummary(jsonData):
     nightTimeRemaining = int(float(nightTimeLimit)) - int(float(nightTimeUsed))
     nightTimePercentageRemaining = round((nightTimeRemaining/nightTimeLimit)*100)
     
-    print("Your usage as of", time)
+    print("===========================================================")
+    print("Here is your usage as of", time)
     print("===========================================================")
 
     print("Day Time - " + str(dayTimePercentageRemaining) + "% Remaining")
@@ -105,6 +101,49 @@ def TotalUsageReport():
     Youtube - "YouTube"
     Torrent - "BitTorrent UTP","BitTorrent DHT","BitTorrent","BitTorrent Encrypted"
     '''
+
+
+def menu():
+    bannerText = """
+ _______  _    _________                _______  _______        _______  _       _________
+(  ____ \( \   \__   __/      |\     /|(  ___  )(  ____ \      (  ____ \( \      \__   __/
+| (    \/| (      ) (         | )   ( || (   ) || (    \/      | (    \/| (         ) (   
+| (_____ | |      | |         | |   | || (___) || (_____       | |      | |         | |   
+(_____  )| |      | |         ( (   ) )|  ___  |(_____  )      | |      | |         | |   
+      ) || |      | |          \ \_/ / | (   ) |      ) |      | |      | |         | |   
+/\____) || (____/\| |           \   /  | )   ( |/\____) |      | (____/\| (____/\___) (___
+\_______)(_______/)_(            \_/   |/     \|\_______)      (_______/(_______/\_______/
+    """
+    print(bannerText)
+    def option_1():
+        print("Fetching your Data...")
+        authToken = getAccessToken()
+        printUsageSummary(getUsageSummaryJson(authToken))
+
+    def option_2():
+        print("You selected Option 2")
+
+    while True:
+        print("1. View current month summary")
+        print("2. View consolidated detailed usage")
+        choice = input("Enter your choice (1 or 2): ")
+        if not choice:
+            print("Invalid input. Please enter a value.")
+            continue
+        try:
+            choice = int(choice)
+            if choice == 1:
+                option_1()
+                break
+            elif choice == 2:
+                option_2()
+                break
+            else:
+                print("Invalid input. Please enter 1 or 2.")
+        except ValueError:
+            print("Invalid input. Please enter a valid integer.")
+        except OverflowError:
+            print("Invalid input. The value is too large.")
 
 
 main()
