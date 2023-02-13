@@ -1,8 +1,11 @@
 import requests
 import json
 import os
+import datetime
+import calendar
 from jsonpath_ng import parse
 from dotenv import load_dotenv
+
 
 load_dotenv()
 userName =  os.getenv("USERNAME")
@@ -94,16 +97,8 @@ def printUsageSummary(jsonData):
     print("Remaining Data: " + totalUsageRemaining + "GB")
     print("===========================================================")
 
-def TotalUsageReport():
-    '''
-    Instagram - "Instagram Video"
-    Tiktok - "TikTok"
-    Youtube - "YouTube"
-    Torrent - "BitTorrent UTP","BitTorrent DHT","BitTorrent","BitTorrent Encrypted"
-    '''
-
-
 def menu():
+    '''Prints out the main menu for the program, and handles user input'''
     bannerText = """
  _______  _    _________                _______  _______        _______  _       _________
 (  ____ \( \   \__   __/      |\     /|(  ___  )(  ____ \      (  ____ \( \      \__   __/
@@ -144,6 +139,50 @@ def menu():
             print("Invalid input. Please enter a valid integer.")
         except OverflowError:
             print("Invalid input. The value is too large.")
+
+
+def TotalUsageReport():
+    
+    def previousMonthDays():
+        today = datetime.datetime.now()
+        prevMonth = today.month - 1
+        if prevMonth == 0:
+            prevMonth = 12
+            year = today.year - 1
+        else:
+            year = today.year
+        numDays = calendar.monthrange(year, prevMonth)[1]
+        return numDays
+
+    numDays = previousMonthDays()
+
+    keywords = ["torrent","youtube","instagram"]
+ 
+    # automate creation of data table based on keywords
+    data = [
+        ["BitTorrent",0,0],
+        ["Instagram",0,0],
+        ["Youtube",0,0]
+        ]
+
+    for x in range(1,numDays+1):
+        print(x)
+        # send request with sleep timer + return json
+        # parse json + return reduced usage dict of format = "{'BitTorrent': 40.042297, 'BitTorrent DHT': 20.896557, 'SSL': 13.350414}"
+        # use reduced dict and return consolidated dict containing daily usage per keyword
+        # search match between consolidated dict and data table. if match then 2nd dimension array modify increment and total
+    
+    
+
+    ## with updated data table, Create new dict calculating average for each data item
+    ## Format = {'BitTorrent': 40.042297, 'BitTorrent DHT': 20.896557, 'SSL': 13.350414}
+    ## output information
+
+
+
+
+
+
 
 
 main()
