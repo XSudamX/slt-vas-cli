@@ -141,32 +141,59 @@ def menu():
             print("Invalid input. The value is too large.")
 
 
-def TotalUsageReport():
+
+def previousMonthDays():
+    '''This function uses the datetime module to calculate the number of days in the previous month, and also return the prev month and year'''
+    today = datetime.datetime.now()
+    prevMonth = today.month - 1
+    if prevMonth == 0:
+        prevMonth = 12
+        year = today.year - 1
+    else:
+        year = today.year
+    numDays = calendar.monthrange(year, prevMonth)[1]
+    prevMonth = str(prevMonth).zfill(2)
+    return numDays,prevMonth,year
+
+
+def getDailyUsageSummaryJson(date,token):
+    '''This function accepts a data parameter, and gets the usage json for that particular date'''
+
+    auth = token
+
+    headers = {
+        'Authorization': 'bearer ' + auth,
+        'Origin': 'https://myslt.slt.lk',
+        'Referer': 'https://myslt.slt.lk/',
+        'X-IBM-Client-Id': '41aed706-8fdf-4b1e-883e-91e44d7f379b',
+    }
     
-    def previousMonthDays():
-        today = datetime.datetime.now()
-        prevMonth = today.month - 1
-        if prevMonth == 0:
-            prevMonth = 12
-            year = today.year - 1
-        else:
-            year = today.year
-        numDays = calendar.monthrange(year, prevMonth)[1]
-        return numDays
+    # construct url from date and subID
+    url  = "https://omniscapp.slt.lk/mobitelint/slt/api/BBVAS/ProtocolReport?&subscriberID=" + subscriberId + "&date=" + date
 
-    numDays = previousMonthDays()
+    response = requests.get(url, headers=headers)
 
-    keywords = ["torrent","youtube","instagram"]
+    return response
+
+
+
+def TotalUsageReport():
+    '''This container function connects to the Omni API and then displays the total usage data for the current month'''
+
+    numDays,prevMonth,year = previousMonthDays()
+    keywords = ["torrent","youtube","instagram","teams"]
  
-    # automate creation of data table based on keywords
-    data = [
-        ["BitTorrent",0,0],
-        ["Instagram",0,0],
-        ["Youtube",0,0]
-        ]
+    # Create Data Table based on keywords array
+    data = [[keyword, 0, 0] for keyword in keywords]
+
 
     for x in range(1,numDays+1):
-        print(x)
+        day = str(x).zfill(2)
+        date = year + "-" + prevMonth + "-" + day
+        getDailyUsageSummaryJson(date)
+
+
+
         # send request with sleep timer + return json
         # parse json + return reduced usage dict of format = "{'BitTorrent': 40.042297, 'BitTorrent DHT': 20.896557, 'SSL': 13.350414}"
         # use reduced dict and return consolidated dict containing daily usage per keyword
