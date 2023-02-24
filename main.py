@@ -209,12 +209,10 @@ def TotalUsageReport():
         dailyUsageJson = getDailyUsageSummaryJson(date,authToken)
         
         #2 parse json + return reduced usage dict of format = "{'BitTorrent': 40.042297, 'BitTorrent DHT': 20.896557, 'SSL': 13.350414}"
-        #jsonResponse = json.loads(dailyUsageJson)
         parsedJson = dailyUsageJson["dataBundle"]["total"]
         dict = {}
         for item in parsedJson:
             dict[item["protocol"]] = item["presentage"]
-        #print(dict)
 
         #3 use reduced dict and return consolidated dict containing daily usage per keyword
         dailyConsolidateDict = dailyConsolidate(dict,keywords)
