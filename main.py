@@ -118,6 +118,7 @@ def menu():
 
     def option_2():
         print("You selected Option 2")
+        TotalUsageReport()
 
     while True:
         print("1. View current month summary")
@@ -173,8 +174,8 @@ def getDailyUsageSummaryJson(date,token):
     url  = "https://omniscapp.slt.lk/mobitelint/slt/api/BBVAS/ProtocolReport?&subscriberID=" + subscriberId + "&date=" + date
 
     response = requests.get(url, headers=headers)
-
-    return response
+    jsonData = json.loads(response.content)
+    return jsonData
 
 def add_values_by_matching_key(dictionary, match_str):
     total = 0
@@ -193,7 +194,7 @@ def dailyConsolidate(dictionary,keywordsArray):
 def TotalUsageReport():
     '''This container function connects to the Omni API and then displays the total usage data for the current month'''
 
-    keywords = ["torrent","youtube","instagram","teams"] # these are the keywords that will sum up your usage
+    keywords = ["torrent","youtube","instagram","teams","tiktok"] # these are the keywords that will sum up your usage
     timer = 5 # sleep timer in between requests to avoid getting timed out (in seconds)
 
     numDays,prevMonth,year = previousMonthDays()
@@ -203,13 +204,13 @@ def TotalUsageReport():
     for x in range(1,numDays+1):
         
         #1 send request + return json
-        day = str(x).zfill(2)
-        date = year + "-" + prevMonth + "-" + day
-        response = getDailyUsageSummaryJson(date,authToken)
+        date = str(year) + "-" + str(prevMonth) + "-" + str(x).zfill(2)
+        print("Getting information for the following date now: " + date)
+        dailyUsageJson = getDailyUsageSummaryJson(date,authToken)
         
         #2 parse json + return reduced usage dict of format = "{'BitTorrent': 40.042297, 'BitTorrent DHT': 20.896557, 'SSL': 13.350414}"
-        jsonResponse = json.loads(response)
-        parsedJson = jsonResponse["dataBundle"]["total"]
+        #jsonResponse = json.loads(dailyUsageJson)
+        parsedJson = dailyUsageJson["dataBundle"]["total"]
         dict = {}
         for item in parsedJson:
             dict[item["protocol"]] = item["presentage"]
@@ -228,7 +229,7 @@ def TotalUsageReport():
                     break
         
         #5 Sleep Timer
-        print("Sleeping now for " + timer + " Seconds to avoid timeout.....")
+        print("Sleeping now for " + str(timer) + " Seconds to avoid timeout.....")
         time.sleep(timer)
     
 
