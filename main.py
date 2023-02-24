@@ -3,6 +3,7 @@ import json
 import os
 import datetime
 import calendar
+import time
 from jsonpath_ng import parse
 from dotenv import load_dotenv
 
@@ -175,41 +176,76 @@ def getDailyUsageSummaryJson(date,token):
 
     return response
 
+def add_values_by_matching_key(dictionary, match_str):
+    total = 0
+    match_str = match_str.lower()
+    for key, value in dictionary.items():
+        if match_str in key.lower():
+            total += value
+    return total
 
+def dailyConsolidate(dictionary,keywordsArray):
+    data = [[keyword,0] for keyword in keywordsArray]
+    for dataKey in data:
+        dataKey[1] = add_values_by_matching_key(dictionary,dataKey[0])
+    return data
 
 def TotalUsageReport():
     '''This container function connects to the Omni API and then displays the total usage data for the current month'''
 
-    numDays,prevMonth,year = previousMonthDays()
-    keywords = ["torrent","youtube","instagram","teams"]
- 
-    # Create Data Table based on keywords array
-    data = [[keyword, 0, 0] for keyword in keywords]
+    keywords = ["torrent","youtube","instagram","teams"] # these are the keywords that will sum up your usage
+    timer = 5 # sleep timer in between requests to avoid getting timed out (in seconds)
 
+    numDays,prevMonth,year = previousMonthDays()
+    authToken = getAccessToken()
+    dataTable = [[keyword, 0, 0] for keyword in keywords] # Create Data Table based on keywords array
 
     for x in range(1,numDays+1):
+        
+        #1 send request + return json
         day = str(x).zfill(2)
         date = year + "-" + prevMonth + "-" + day
-        getDailyUsageSummaryJson(date)
+        response = getDailyUsageSummaryJson(date,authToken)
+        
+        #2 parse json + return reduced usage dict of format = "{'BitTorrent': 40.042297, 'BitTorrent DHT': 20.896557, 'SSL': 13.350414}"
+        jsonResponse = json.loads(response)
+        parsedJson = jsonResponse["dataBundle"]["total"]
+        dict = {}
+        for item in parsedJson:
+            dict[item["protocol"]] = item["presentage"]
+        #print(dict)
 
+        #3 use reduced dict and return consolidated dict containing daily usage per keyword
+        dailyConsolidateDict = dailyConsolidate(dict,keywords)
 
-
-        # send request with sleep timer + return json
-        # parse json + return reduced usage dict of format = "{'BitTorrent': 40.042297, 'BitTorrent DHT': 20.896557, 'SSL': 13.350414}"
-        # use reduced dict and return consolidated dict containing daily usage per keyword
-        # search match between consolidated dict and data table. if match then 2nd dimension array modify increment and total
+        #4 search match between consolidated dict and data table. if match then 2nd dimension array modify increment and total
+        for item in dailyConsolidateDict:
+            keyword, integer = item[0], item[1]
+            for i in range(len(dataTable)):
+                if dataTable[i][0] == keyword:
+                    dataTable[i][1] += integer
+                    dataTable[i][2] += 1
+                    break
+        
+        #5 Sleep Timer
+        print("Sleeping now for " + timer + " Seconds to avoid timeout.....")
+        time.sleep(timer)
     
+
     
+    # With updated data table, Create new dict calculating average for each data item
+    resultDict = {}
+    for item in dataTable:
+        dataString,total,increment = item[0],item[1],item[2]
+        try:
+            average = total / increment
+        except ZeroDivisionError:
+            average = 0
+        resultDict[dataString] = average
 
-    ## with updated data table, Create new dict calculating average for each data item
-    ## Format = {'BitTorrent': 40.042297, 'BitTorrent DHT': 20.896557, 'SSL': 13.350414}
-    ## output information
-
-
-
-
-
-
+    
+    # Output information
+    print(resultDict)
 
 
 main()
