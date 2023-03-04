@@ -201,6 +201,8 @@ def TotalUsageReport():
     authToken = getAccessToken()
     dataTable = [[keyword, 0, 0] for keyword in keywords] # Create Data Table based on keywords array
 
+    completeDict = {}
+
     for x in range(1,numDays+1):
         
         #1 send request + return json
@@ -213,6 +215,7 @@ def TotalUsageReport():
         dict = {}
         for item in parsedJson:
             dict[item["protocol"]] = item["presentage"]
+        completeDict.update({x: dict})
 
         #3 use reduced dict and return consolidated dict containing daily usage per keyword
         dailyConsolidateDict = dailyConsolidate(dict,keywords)
@@ -245,6 +248,7 @@ def TotalUsageReport():
     
     # Output information
     print(resultDict)
+    print(completeDict)
 
 
 main()
